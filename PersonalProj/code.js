@@ -6,43 +6,60 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+function cardClickHandler(event) {
+  revealCard(event.currentTarget);
+}
+
 function switchOnclick(toggle) {
   if(toggle == 'on') {
-    console.log('on')
     img.forEach(card_back => {
-      card_back.addEventListener('click', revealCard(card_back));
+      card_back.addEventListener('click', cardClickHandler);
     })
   }
   else if(toggle == 'off'){
-    console.log('off')
     img.forEach(card_back => {
-      card_back.removeEventListener('click', revealCard(card_back));
+      card_back.removeEventListener('click', cardClickHandler);
     })
   }
-
 }
 
 function areEqualCards() {
   if(selected_cards[0].src == selected_cards[1].src) {
-    selected_cards.forEach(elem => {
-      elem.parentNode.removeChild(elem);
-    })
-  }
+    for(let i = 0; i < img.length; i++) {
+      if(img[i] == selected_cards[0]) {
+        img[i].style.pointerEvents = 'none';
+        img[i].style.opacity = 0;
+        break;
+      }
+    }
+    for(let i = 0; i < img.length; i++) {
+      if(img[i] == selected_cards[1]) {
+        img[i].style.pointerEvents = 'none';
+        img[i].style.opacity = 0;
+        break;
+      }
+    }
+    return true;
+  } 
 }
 
 async function revealCard(element) {
+  element.style.pointerEvents = 'none';
   element.src = cards_src[element.id];
   selected_cards.push(element);
   cards_clicked++;
   if (cards_clicked == 2) {
     switchOnclick('off');
     await sleep(1000);
-    areEqualCards();
-    selected_cards.forEach(data => {
-      data.src = './card-back.jpg';
-    });
+    if(areEqualCards() != true) {
+      selected_cards.forEach(card => {
+        card.src = './card-back.jpg';
+        card.style.pointerEvents = 'auto';
+      });
+    }
     cards_clicked = 0;
     selected_cards.splice(0,2);
+    switchOnclick('on');
   }
 }
 
@@ -61,14 +78,24 @@ function createGrid() {
   }
 }
 
+function preventDivResizing() {
+  let div_width = Parent.offsetWidth;
+  let div_height = Parent.offsetHeight;
+  Parent.style.minHeight = div_height + 'px';
+  Parent.style.minWidth = div_width + 'px';
+  Parent.style.maxHeight = div_height + 'px';
+  Parent.style.maxWidth = div_width + 'px';
+}
+
 function startGame() {
   createGrid();
   createGrid();
+  preventDivResizing();
   img = document.querySelectorAll('img');
   switchOnclick('on');
-  switchOnclick('off');
 }
 
+card_clicked = '';
 cards_src = [];
 count = 0;
 cards_clicked = 0;
